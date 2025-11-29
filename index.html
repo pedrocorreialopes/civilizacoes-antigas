@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="UTF-8">
+  <title>Linha do Tempo Histórica Interativa</title><!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script><!-- Element SDK (obrigatório) -->
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Foco visível para acessibilidade */
+    .focus-outline:focus-visible {
+      outline: 3px solid #ffb347;
+      outline-offset: 2px;
+    }
+
+    /* Animação suave de expansão */
+    .accordion-content {
+      transition: max-height 0.3s ease, opacity 0.3s ease, padding-top 0.3s ease, padding-bottom 0.3s ease;
+      overflow: hidden;
+    }
+
+    .accordion-content.closed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .accordion-content.open {
+      max-height: 500px;
+      opacity: 1;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="app-wrapper">
+  <div id="root" class="w-full h-full bg-[#0f172a] flex items-stretch justify-center">
+   <div class="w-full max-w-5xl px-6 py-6 md:py-8 flex flex-col gap-6">
+    <header class="w-full" aria-label="Cabeçalho da linha do tempo">
+     <div class="rounded-2xl bg-[#1e293b] border border-[#38bdf8] px-6 py-5 shadow-lg flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-3">
+       <div>
+        <h1 id="main-title" class="text-2xl md:text-3xl font-semibold text-[#e5e7eb]">Civilizações Antigas</h1>
+        <p id="subtitle-text" class="text-sm md:text-base text-[#cbd5f5] mt-1">3000 a.C. – 500 d.C.</p>
+       </div><!-- Pequeno marcador visual -->
+       <div class="hidden md:flex flex-col items-end gap-1"><span class="inline-flex items-center gap-1 text-xs text-[#e5e7eb]"> ● <span>Linha do tempo interativa</span> </span> <span class="text-[11px] text-[#cbd5f5]"> Explore cartões para detalhes </span>
+       </div>
+      </div>
+      <p class="text-xs md:text-sm text-[#e5e7eb] mt-2">Arraste o olhar da esquerda para a direita para acompanhar a jornada histórica do Egito, Grécia e Roma. Clique em cada cartão para abrir curiosidades, contextos e conexões.</p>
+     </div>
+    </header>
+    <main class="w-full flex-1 flex flex-col gap-4" aria-label="Conteúdo principal"><!-- Linha temporal geral -->
+     <section aria-label="Linha do tempo geral 3000 a.C. a 500 d.C.">
+      <div class="rounded-2xl bg-[#1e293b] border border-[#64748b] px-4 py-3 md:px-5 md:py-4 shadow-md">
+       <div class="flex items-center gap-2 text-[#e5e7eb] text-xs md:text-sm"><span class="font-medium">Escala geral</span>
+        <div class="flex-1 h-0.5 bg-[#38bdf8] rounded-full mx-2"></div><span class="text-[11px] md:text-xs">3000 a.C.</span> <span class="text-[11px] md:text-xs">→</span> <span class="text-[11px] md:text-xs">500 d.C.</span>
+       </div>
+       <div class="mt-3 grid grid-cols-3 gap-2 text-[11px] md:text-xs text-[#cbd5f5]">
+        <div class="flex flex-col gap-0.5"><span class="font-semibold text-[#e5e7eb]">Egito Antigo</span> <span>Sociedades agrícolas às margens do Nilo.</span>
+        </div>
+        <div class="flex flex-col gap-0.5"><span class="font-semibold text-[#e5e7eb]">Grécia Antiga</span> <span>Cidades-estado, filosofia e artes.</span>
+        </div>
+        <div class="flex flex-col gap-0.5"><span class="font-semibold text-[#e5e7eb]">Roma Antiga</span> <span>República, Império e legado jurídico.</span>
+        </div>
+       </div>
+      </div>
+     </section><!-- Área da linha do tempo principal -->
+     <section class="w-full flex-1 flex flex-col gap-3" aria-label="Eventos principais das civilizações antigas">
+      <h2 class="sr-only">Eventos-chave de Egito, Grécia e Roma</h2><!-- Timeline horizontal com scroll -->
+      <div class="relative w-full flex-1">
+       <div class="w-full h-full rounded-2xl bg-[#020617] border border-[#334155] px-4 py-4 md:px-5 md:py-5 shadow-inner flex flex-col gap-4"><!-- Eixo da linha do tempo -->
+        <div class="relative flex-1 flex flex-col">
+         <div class="relative w-full flex-1 overflow-x-auto overflow-y-visible pb-2" aria-label="Linha do tempo rolável">
+          <div id="timeline-track" class="relative min-w-full h-full flex items-center"><!-- Linha central -->
+           <div class="absolute left-0 right-0 h-0.5 bg-[#64748b] rounded-full"></div><!-- Marcadores de períodos -->
+           <div class="relative w-full flex justify-between items-center"><!-- Egito -->
+            <div class="relative flex flex-col items-center gap-2 min-w-[120px]">
+             <div class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] border border-[#e5e7eb]"></div><button type="button" class="focus-outline group rounded-xl bg-[#1f2937] border border-[#38bdf8] px-3 py-2 text-left shadow-md hover:-translate-y-0.5 hover:shadow-lg transition transform text-xs md:text-sm text-[#e5e7eb] w-40 md:w-48" data-period="egypt" aria-expanded="false"> <span id="egypt-title" class="font-semibold block"> Egito Antigo </span> <span class="text-[11px] text-[#cbd5f5]"> 3000 a.C. – 30 a.C. </span> <span class="mt-1 inline-flex items-center gap-1 text-[10px] text-[#38bdf8]"> <span>Ver eventos</span> <span aria-hidden="true">▼</span> </span> </button>
+            </div><!-- Grécia -->
+            <div class="relative flex flex-col items-center gap-2 min-w-[120px]">
+             <div class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] border border-[#e5e7eb]"></div><button type="button" class="focus-outline group rounded-xl bg-[#1f2937] border border-[#38bdf8] px-3 py-2 text-left shadow-md hover:-translate-y-0.5 hover:shadow-lg transition transform text-xs md:text-sm text-[#e5e7eb] w-40 md:w-48" data-period="greece" aria-expanded="false"> <span id="greece-title" class="font-semibold block"> Grécia Antiga </span> <span class="text-[11px] text-[#cbd5f5]"> 800 a.C. – 146 a.C. </span> <span class="mt-1 inline-flex items-center gap-1 text-[10px] text-[#38bdf8]"> <span>Ver eventos</span> <span aria-hidden="true">▼</span> </span> </button>
+            </div><!-- Roma -->
+            <div class="relative flex flex-col items-center gap-2 min-w-[120px]">
+             <div class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] border border-[#e5e7eb]"></div><button type="button" class="focus-outline group rounded-xl bg-[#1f2937] border border-[#38bdf8] px-3 py-2 text-left shadow-md hover:-translate-y-0.5 hover:shadow-lg transition transform text-xs md:text-sm text-[#e5e7eb] w-40 md:w-48" data-period="rome" aria-expanded="false"> <span id="rome-title" class="font-semibold block"> Roma Antiga </span> <span class="text-[11px] text-[#cbd5f5]"> 753 a.C. – 476 d.C. </span> <span class="mt-1 inline-flex items-center gap-1 text-[10px] text-[#38bdf8]"> <span>Ver eventos</span> <span aria-hidden="true">▼</span> </span> </button>
+            </div>
+           </div>
+          </div>
+         </div><!-- Cartões de eventos (expansíveis) -->
+         <div id="event-panels" class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs md:text-sm" aria-label="Cartões de eventos detalhados"><!-- Painel Egito -->
+          <article class="rounded-2xl bg-[#1e293b] border border-[#334155] px-3 py-3 shadow-md flex flex-col" aria-labelledby="panel-egypt-title">
+           <header class="flex items-center justify-between gap-2">
+            <h3 id="panel-egypt-title" class="font-semibold text-[#e5e7eb] text-sm md:text-base">Egito Antigo: vida às margens do Nilo</h3><button type="button" class="focus-outline text-[11px] text-[#38bdf8] underline-offset-2 hover:underline" data-toggle="egypt" aria-expanded="false"> Expandir </button>
+           </header>
+           <div id="panel-egypt-content" class="accordion-content closed text-[#e5e7eb]">
+            <ul class="list-disc pl-4 space-y-1 mt-1.5">
+             <li><span class="font-semibold">c. 3000 a.C. – Unificação do Egito:</span> surgimento de um único reino ao longo do rio Nilo.</li>
+             <li><span class="font-semibold">c. 2600–2500 a.C. – Construção das Pirâmides de Gizé:</span> grandes projetos de engenharia ligados à religião e ao poder dos faraós.</li>
+             <li><span class="font-semibold">c. 1350 a.C. – Reforma religiosa de Akhenaton:</span> tentativa de adorar um único deus (Aton).</li>
+             <li><span class="font-semibold">Hieróglifos e papiro:</span> desenvolvimento de escrita e registros administrativos.</li>
+            </ul>
+            <p class="mt-2 text-[11px] text-[#cbd5f5]">Sugestão de atividade: peça aos alunos que criem um “diário de um escriba” descrevendo um dia de trabalho no palácio ou no templo.</p>
+           </div>
+          </article><!-- Painel Grécia -->
+          <article class="rounded-2xl bg-[#1e293b] border border-[#334155] px-3 py-3 shadow-md flex flex-col" aria-labelledby="panel-greece-title">
+           <header class="flex items-center justify-between gap-2">
+            <h3 id="panel-greece-title" class="font-semibold text-[#e5e7eb] text-sm md:text-base">Grécia Antiga: pólis, mitos e filosofia</h3><button type="button" class="focus-outline text-[11px] text-[#38bdf8] underline-offset-2 hover:underline" data-toggle="greece" aria-expanded="false"> Expandir </button>
+           </header>
+           <div id="panel-greece-content" class="accordion-content closed text-[#e5e7eb]">
+            <ul class="list-disc pl-4 space-y-1 mt-1.5">
+             <li><span class="font-semibold">c. 800 a.C. – Formação das pólis:</span> cidades-estado como Atenas e Esparta.</li>
+             <li><span class="font-semibold">c. 776 a.C. – Primeiros Jogos Olímpicos:</span> festivais religiosos e esportivos em Olímpia.</li>
+             <li><span class="font-semibold">Séculos V–IV a.C. – “Século de Ouro” de Atenas:</span> desenvolvimento da democracia, teatro, filosofia (Sócrates, Platão, Aristóteles).</li>
+             <li><span class="font-semibold">c. 334–323 a.C. – Conquistas de Alexandre, o Grande:</span> expansão da cultura grega (helenismo).</li>
+            </ul>
+            <p class="mt-2 text-[11px] text-[#cbd5f5]">Sugestão de atividade: proponha que os alunos encenem uma pequena assembleia ateniense debatendo uma lei importante.</p>
+           </div>
+          </article><!-- Painel Roma -->
+          <article class="rounded-2xl bg-[#1e293b] border border-[#334155] px-3 py-3 shadow-md flex flex-col" aria-labelledby="panel-rome-title">
+           <header class="flex items-center justify-between gap-2">
+            <h3 id="panel-rome-title" class="font-semibold text-[#e5e7eb] text-sm md:text-base">Roma Antiga: da monarquia ao Império</h3><button type="button" class="focus-outline text-[11px] text-[#38bdf8] underline-offset-2 hover:underline" data-toggle="rome" aria-expanded="false"> Expandir </button>
+           </header>
+           <div id="panel-rome-content" class="accordion-content closed text-[#e5e7eb]">
+            <ul class="list-disc pl-4 space-y-1 mt-1.5">
+             <li><span class="font-semibold">753 a.C. – Fundação lendária de Roma:</span> mito de Rômulo e Remo.</li>
+             <li><span class="font-semibold">509 a.C. – Início da República Romana:</span> surgimento do Senado e das assembleias.</li>
+             <li><span class="font-semibold">27 a.C. – Começo do Império:</span> Otávio (Augusto) torna-se o primeiro imperador.</li>
+             <li><span class="font-semibold">476 d.C. – Queda do Império Romano do Ocidente:</span> marco tradicional do fim da Antiguidade.</li>
+            </ul>
+            <p class="mt-2 text-[11px] text-[#cbd5f5]">Sugestão de atividade: convide os alunos a comparar direitos e deveres dos cidadãos romanos com os de hoje em sua comunidade.</p>
+           </div>
+          </article>
+         </div>
+        </div>
+       </div>
+      </div>
+     </section>
+     <footer class="w-full" aria-label="Rodapé da linha do tempo">
+      <div class="rounded-2xl bg-[#1e293b] border border-[#334155] px-4 py-3 md:px-5 md:py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+       <p id="footer-text" class="text-[11px] md:text-xs text-[#cbd5f5]">Use esta linha do tempo como ponto de partida: peça aos alunos que adicionem novos eventos ou criem perguntas investigativas para cada civilização.</p>
+       <div class="flex items-center gap-2 text-[11px] text-[#e5e7eb]"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#38bdf8] text-[#0f172a] font-semibold"> ? </span> <span> Clique nos cartões para explorar.</span>
+       </div>
+      </div>
+     </footer>
+    </main>
+   </div>
+  </div>
+  <script>
+    // ---------- Element SDK & Config ----------
+    const defaultConfig = {
+      // Cores (máx. 5)
+      background_color: "#0f172a",     // BACKGROUND
+      surface_color: "#1e293b",        // SECONDARY_SURFACE
+      text_color: "#e5e7eb",           // TEXT
+      primary_action_color: "#38bdf8", // PRIMARY_ACTION
+      secondary_action_color: "#cbd5f5",// SECONDARY_ACTION
+
+      // Fonte
+      font_family: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font_size: 14,
+
+      // Textos editáveis
+      main_title: "Civilizações Antigas",
+      subtitle: "3000 a.C. – 500 d.C.",
+      egypt_section_title: "Egito Antigo",
+      greece_section_title: "Grécia Antiga",
+      rome_section_title: "Roma Antiga",
+      footer_text: "Use esta linha do tempo como ponto de partida: peça aos alunos que adicionem novos eventos ou criem perguntas investigativas para cada civilização."
+    };
+
+    // Aplica config na interface
+    async function onConfigChange(config) {
+      const effective = Object.assign({}, defaultConfig, config || {});
+
+      const root = document.getElementById("root");
+      const mainTitleEl = document.getElementById("main-title");
+      const subtitleEl = document.getElementById("subtitle-text");
+      const footerTextEl = document.getElementById("footer-text");
+      const egyptTitleButton = document.getElementById("egypt-title");
+      const greeceTitleButton = document.getElementById("greece-title");
+      const romeTitleButton = document.getElementById("rome-title");
+
+      const baseFont = effective.font_family;
+      const fontStack = baseFont
+        ? baseFont + ", system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        : defaultConfig.font_family;
+
+      const baseSize = Number(effective.font_size) || defaultConfig.font_size;
+
+      // Cores e fundo principais
+      if (root) {
+        root.style.backgroundColor = effective.background_color;
+        root.style.color = effective.text_color;
+        root.style.fontFamily = fontStack;
+        root.style.fontSize = baseSize + "px";
+      }
+
+      // Ajuste de fontes escalonadas
+      if (mainTitleEl) {
+        mainTitleEl.textContent = effective.main_title || defaultConfig.main_title;
+        mainTitleEl.style.fontFamily = fontStack;
+        mainTitleEl.style.fontSize = (baseSize * 1.8) + "px";
+        mainTitleEl.style.color = effective.text_color;
+      }
+
+      if (subtitleEl) {
+        subtitleEl.textContent = effective.subtitle || defaultConfig.subtitle;
+        subtitleEl.style.fontFamily = fontStack;
+        subtitleEl.style.fontSize = (baseSize * 1.0) + "px";
+        subtitleEl.style.color = effective.secondary_action_color;
+      }
+
+      if (footerTextEl) {
+        footerTextEl.textContent = effective.footer_text || defaultConfig.footer_text;
+        footerTextEl.style.fontFamily = fontStack;
+        footerTextEl.style.fontSize = (baseSize * 0.85) + "px";
+        footerTextEl.style.color = effective.secondary_action_color;
+      }
+
+      if (egyptTitleButton) {
+        egyptTitleButton.textContent = effective.egypt_section_title || defaultConfig.egypt_section_title;
+        egyptTitleButton.style.fontFamily = fontStack;
+        egyptTitleButton.style.fontSize = (baseSize * 1.0) + "px";
+        egyptTitleButton.style.color = effective.text_color;
+      }
+
+      if (greeceTitleButton) {
+        greeceTitleButton.textContent = effective.greece_section_title || defaultConfig.greece_section_title;
+        greeceTitleButton.style.fontFamily = fontStack;
+        greeceTitleButton.style.fontSize = (baseSize * 1.0) + "px";
+        greeceTitleButton.style.color = effective.text_color;
+      }
+
+      if (romeTitleButton) {
+        romeTitleButton.textContent = effective.rome_section_title || defaultConfig.rome_section_title;
+        romeTitleButton.style.fontFamily = fontStack;
+        romeTitleButton.style.fontSize = (baseSize * 1.0) + "px";
+        romeTitleButton.style.color = effective.text_color;
+      }
+
+      // Aplicar cores aos principais blocos
+      const surfaceBlocks = document.querySelectorAll(
+        "[class*='bg-[#1e293b]'], [class*='bg-[#020617]'], [class*='bg-[#1f2937]']"
+      );
+      surfaceBlocks.forEach((el) => {
+        // secundário para painéis
+        if (el.classList.contains("bg-[#020617]")) {
+          el.style.backgroundColor = effective.background_color;
+        } else {
+          el.style.backgroundColor = effective.surface_color;
+        }
+      });
+
+      // Botões de ação primária (bordinhas/indicadores em azul)
+      const primaryIndicators = document.querySelectorAll(
+        ".border-[#38bdf8], .text-[#38bdf8], .bg-[#38bdf8]"
+      );
+      primaryIndicators.forEach((el) => {
+        if (el.classList.contains("bg-[#38bdf8]")) {
+          el.style.backgroundColor = effective.primary_action_color;
+        }
+        if (el.classList.contains("border-[#38bdf8]")) {
+          el.style.borderColor = effective.primary_action_color;
+        }
+        if (el.classList.contains("text-[#38bdf8]")) {
+          el.style.color = effective.primary_action_color;
+        }
+      });
+
+      // Textos gerais
+      const textEls = document.querySelectorAll(
+        ".text-[#e5e7eb], .text-[#cbd5f5]"
+      );
+      textEls.forEach((el) => {
+        el.style.fontFamily = fontStack;
+        // Diferenciar texto normal e secundário
+        if (el.classList.contains("text-[#cbd5f5]")) {
+          el.style.color = effective.secondary_action_color;
+          el.style.fontSize = (baseSize * 0.9) + "px";
+        } else {
+          el.style.color = effective.text_color;
+          el.style.fontSize = (baseSize * 0.95) + "px";
+        }
+      });
+
+      // Títulos h3 dos painéis um pouco maiores
+      const panelTitles = document.querySelectorAll("article h3");
+      panelTitles.forEach((el) => {
+        el.style.fontSize = (baseSize * 1.1) + "px";
+      });
+    }
+
+    function mapToCapabilities(config) {
+      const cfg = config || defaultConfig;
+      return {
+        recolorables: [
+          {
+            get: () => cfg.background_color || defaultConfig.background_color,
+            set: (value) => {
+              if (!window.elementSdk) return;
+              window.elementSdk.setConfig({ background_color: value });
+            }
+          },
+          {
+            get: () => cfg.surface_color || defaultConfig.surface_color,
+            set: (value) => {
+              if (!window.elementSdk) return;
+              window.elementSdk.setConfig({ surface_color: value });
+            }
+          },
+          {
+            get: () => cfg.text_color || defaultConfig.text_color,
+            set: (value) => {
+              if (!window.elementSdk) return;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => cfg.primary_action_color || defaultConfig.primary_action_color,
+            set: (value) => {
+              if (!window.elementSdk) return;
+              window.elementSdk.setConfig({ primary_action_color: value });
+            }
+          },
+          {
+            get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color,
+            set: (value) => {
+              if (!window.elementSdk) return;
+              window.elementSdk.setConfig({ secondary_action_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => cfg.font_family || defaultConfig.font_family,
+          set: (value) => {
+            if (!window.elementSdk) return;
+            window.elementSdk.setConfig({ font_family: value });
+          }
+        },
+        fontSizeable: {
+          get: () => cfg.font_size || defaultConfig.font_size,
+          set: (value) => {
+            if (!window.elementSdk) return;
+            window.elementSdk.setConfig({ font_size: value });
+          }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      const cfg = config || {};
+      return new Map([
+        ["main_title", cfg.main_title || defaultConfig.main_title],
+        ["subtitle", cfg.subtitle || defaultConfig.subtitle],
+        ["egypt_section_title", cfg.egypt_section_title || defaultConfig.egypt_section_title],
+        ["greece_section_title", cfg.greece_section_title || defaultConfig.greece_section_title],
+        ["rome_section_title", cfg.rome_section_title || defaultConfig.rome_section_title],
+        ["footer_text", cfg.footer_text || defaultConfig.footer_text]
+      ]);
+    }
+
+    if (window.elementSdk && typeof window.elementSdk.init === "function") {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    } else {
+      // Fallback: aplica config padrão se SDK não estiver disponível ainda
+      onConfigChange(defaultConfig);
+    }
+
+    // ---------- Interatividade da linha do tempo ----------
+    function setupAccordion() {
+      const toggleButtons = document.querySelectorAll("[data-toggle]");
+      toggleButtons.forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+          event.preventDefault();
+          const target = btn.getAttribute("data-toggle");
+          if (!target) return;
+          const content = document.getElementById(`panel-${target}-content`);
+          const expanded = btn.getAttribute("aria-expanded") === "true";
+
+          if (content) {
+            if (expanded) {
+              content.classList.remove("open");
+              content.classList.add("closed");
+              btn.textContent = "Expandir";
+              btn.setAttribute("aria-expanded", "false");
+            } else {
+              content.classList.remove("closed");
+              content.classList.add("open");
+              btn.textContent = "Recolher";
+              btn.setAttribute("aria-expanded", "true");
+            }
+          }
+        });
+      });
+
+      // Botões principais da timeline que "destacam" o painel respectivo
+      const periodButtons = document.querySelectorAll("[data-period]");
+      periodButtons.forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+          event.preventDefault();
+          const period = btn.getAttribute("data-period");
+          if (!period) return;
+
+          // Rolagem suave até o painel correspondente
+          const panel = document.getElementById(`panel-${period}-title`);
+          if (panel && typeof panel.scrollIntoView === "function") {
+            panel.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+
+          // Efeito de destaque leve
+          const article = panel ? panel.closest("article") : null;
+          if (article) {
+            article.classList.add("ring-2", "ring-[#38bdf8]");
+            setTimeout(() => {
+              article.classList.remove("ring-2", "ring-[#38bdf8]");
+            }, 800);
+          }
+        });
+      });
+    }
+
+    // Garante que o DOM esteja pronto
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => {
+        setupAccordion();
+      });
+    } else {
+      setupAccordion();
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a621df49245dc15',t:'MTc2NDQxOTQzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
